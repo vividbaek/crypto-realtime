@@ -1,0 +1,6 @@
+# requirements.txt
+# Kafka
+kafka-python>=2.0.2
+
+# WebSocket
+websockets>=11.0

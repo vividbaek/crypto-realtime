@@ -35,4 +35,6 @@ Thumbs.db
 # 프로젝트 특정
 old_test/
 *.pyc
-EOF
+
+# Docker 데이터 (Git에 포함하지 않음)
+data/
