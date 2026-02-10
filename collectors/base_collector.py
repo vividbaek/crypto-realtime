@@ -25,7 +25,6 @@ class BaseBinanceCollector(ABC):
         self.running = True  # 종료 플래그 추가
         self.kafka = KafkaProducerWrapper(Config.KAFKA_BOOTSTRAP_SERVERS)
 
-
     @abstractmethod
     async def process_data(self, stream_name: str, payload: dict):
         """하위 클래스에서 데이터 정제 및 카프카 전송 로직 구현"""
@@ -41,7 +40,9 @@ class BaseBinanceCollector(ABC):
             "ts": int(time.time() * 1000)
         }
         self.kafka.send(topic=topic, value=message, key=self.symbol.upper())
-
+        # 주기적으로 flush (매 100개마다)
+        if self.total_count % 100 == 0:
+            self.kafka.flush()
 
     async def start(self):
         self.start_time = time.time()
@@ -95,6 +96,8 @@ class BaseBinanceCollector(ABC):
         except Exception as e:
             print(f"\n❌ 예상치 못한 에러: {e}")
         finally:
+            # 종료 시 마지막 flush
+            self.kafka.flush()
             self._final_report()
 
     async def _report_metrics(self):
