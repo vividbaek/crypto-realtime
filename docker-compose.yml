@@ -32,9 +32,9 @@ services:
     command: bin/spark-class org.apache.spark.deploy.master.Master
     environment:
       - SPARK_MASTER_HOST=spark-master
-      - IVY_CACHE_DIR=/tmp/.ivy2  # 추가: Ivy 캐시를 /tmp로 이동
     volumes:
       - ./spark_jobs:/opt/spark/work-dir
+      - ./data/spark-ivy:/opt/spark/.ivy2  # Ivy 캐시 디렉토리 마운트
 
   spark-worker:
     image: apache/spark-py:v3.3.0

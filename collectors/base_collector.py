@@ -32,17 +32,26 @@ class BaseBinanceCollector(ABC):
     
     async def _send_to_kafka(self, stream_name: str, payload: dict):
         """Kafka로 메시지 전송"""
-        topic = Config.get_topic(stream_name)
-        message = {
-            "symbol": self.symbol.upper(),
-            "stream": stream_name,
-            "data": payload,
-            "ts": int(time.time() * 1000)
-        }
-        self.kafka.send(topic=topic, value=message, key=self.symbol.upper())
-        # 주기적으로 flush (매 100개마다)
-        if self.total_count % 100 == 0:
-            self.kafka.flush()
+        try:
+            topic = Config.get_topic(stream_name)
+            message = {
+                "symbol": self.symbol.upper(),
+                "stream": stream_name,
+                "data": payload,
+                "ts": int(time.time() * 1000)
+            }
+            future = self.kafka.send(topic=topic, value=message, key=self.symbol.upper())
+            # 주기적으로 flush (매 5개마다 - 더 자주)
+            if self.total_count % 5 == 0:
+                self.kafka.flush()
+                # 에러 확인 (처음 몇 개만)
+                if self.total_count <= 20:
+                    try:
+                        future.get(timeout=1)
+                    except Exception as e:
+                        print(f"\n⚠️ Kafka 전송 확인 실패: {e}")
+        except Exception as e:
+            print(f"❌ Kafka 전송 에러: {e}")
 
     async def start(self):
         self.start_time = time.time()
