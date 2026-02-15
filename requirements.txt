@@ -4,3 +4,9 @@ kafka-python>=2.0.2
 
 # WebSocket
 websockets>=11.0
+
+# Elasticsearch
+elasticsearch==8.11.0
+
+# HTTP Requests
+requests>=2.31.0
