@@ -12,7 +12,7 @@ class Config:
         # "bookTicker": "binance-bookticker",
         "depth": "binance-depth",
         # "trade": "binance-trade",
-        # "aggTrade": "binance-trade",
+        "aggTrade": "binance-aggtrade",
         # "kline": "binance-kline",
         # "ticker": "binance-ticker",
         # "miniTicker": "binance-ticker",

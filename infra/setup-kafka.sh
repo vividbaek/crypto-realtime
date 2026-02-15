@@ -77,10 +77,11 @@ create_topic() {
 
 echo ""
 echo "=========================================="
-echo "  Kafka 토픽 생성 (depth만)"
+echo "  Kafka 토픽 생성"
 echo "=========================================="
 
 create_topic "binance-depth" 604800000
+create_topic "binance-aggtrade" 604800000
 
 # 리더 선출 대기
 echo ""
