@@ -11,9 +11,9 @@ class Config:
     TOPIC_MAP = {
         # "bookTicker": "binance-bookticker",
         "depth": "binance-depth",
-        # "trade": "binance-trade",
-        # "aggTrade": "binance-trade",
-        # "kline": "binance-kline",
+        "trade": "binance-trade",
+        "aggTrade": "binance-trade",
+        "kline": "binance-kline",
         # "ticker": "binance-ticker",
         # "miniTicker": "binance-ticker",
         # "fundingRate": "binance-fundingrate",

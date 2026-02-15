@@ -4,7 +4,10 @@
 
 set -e
 
-cd /home/vividbaek/boaz
+# 스크립트 위치 기준으로 프로젝트 루트로 이동 (어느 사용자/경로에서도 동작)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$PROJECT_ROOT"
 
 # --clean 옵션 파싱
 CLEAN_START=false
@@ -56,15 +59,30 @@ if [ "$CLEAN_START" = true ]; then
     echo "  ✅ 클린 스타트 완료"
 fi
 
-# 1. Docker 서비스 시작
+# 1. 데이터 디렉터리 준비 (Kafka/ClickHouse/Spark 볼륨이 쓸 수 있도록)
 echo ""
-echo "📦 1단계: Docker 서비스 시작..."
+echo "📁 데이터 디렉터리 준비..."
+mkdir -p data/kafka data/clickhouse data/spark-ivy
+chmod 777 data/kafka data/clickhouse data/spark-ivy 2>/dev/null || true
+echo "✅ 데이터 디렉터리 준비 완료"
+
+# 2. Docker 서비스 시작
+echo ""
+echo "📦 2단계: Docker 서비스 시작..."
 docker-compose up -d
 echo "✅ Docker 서비스 시작 완료"
 
-# 2. Kafka 준비 대기
+# 클린 스타트 시 Spark 체크포인트 삭제 (Kafka 토픽 ID가 바뀌면 Spark가 예전 ID로 요청해 브로커 에러 발생 방지)
+if [ "$CLEAN_START" = true ]; then
+    echo "🧹 Spark 체크포인트 초기화 (토픽 ID 변경 대비)..."
+    sleep 10
+    docker exec spark-master rm -rf /tmp/checkpoint-* 2>/dev/null || true
+    echo "  ✅ Spark 체크포인트 초기화 완료"
+fi
+
+# 3. Kafka 준비 대기
 echo ""
-echo "⏳ 2단계: Kafka 준비 대기 (30초)..."
+echo "⏳ 3단계: Kafka 준비 대기 (30초)..."
 sleep 30
 
 # 2-1. Kafka 에러 확인 및 자동 복구
@@ -89,27 +107,26 @@ if [ -n "$KAFKA_ERROR" ]; then
     docker-compose up -d kafka
     echo "✅ Kafka 재시작 완료"
     
+    # Spark 체크포인트 삭제 (토픽 ID가 바뀌었으므로 예전 체크포인트 사용 시 브로커 에러 방지)
+    docker exec spark-master rm -rf /tmp/checkpoint-* 2>/dev/null || true
+    echo "  ✅ Spark 체크포인트 초기화 완료"
+    
     # 대기
     echo "⏳ Kafka 재시작 대기 중... (30초)"
     sleep 30
 fi
 
-# 3. 토픽 생성 (이미 있으면 건너뜀)
+# 3. 토픽 생성 (이미 있으면 건너뜀, 내부에서 리더 선출 15초 대기 포함)
 echo ""
-echo "📝 3단계: Kafka 토픽 확인/생성..."
+echo "📝 4단계: Kafka 토픽 확인/생성..."
 ./infra/setup-kafka.sh
 
-# 4. 리더 선출 대기
-echo ""
-echo "⏳ 4단계: 리더 선출 완료 대기 (15초)..."
-sleep 15
-
-# 5. 상태 확인
+# 4. 상태 확인
 echo ""
 echo "📊 5단계: 서비스 상태 확인"
 docker-compose ps
 
-# 6. Spark 상태 확인 및 준비
+# 5. Spark 상태 확인 및 준비
 echo ""
 echo "📊 6단계: Spark 상태 확인 및 준비..."
 sleep 5

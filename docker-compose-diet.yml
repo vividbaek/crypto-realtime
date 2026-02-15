@@ -1,0 +1,43 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_HEAP_OPTS: "-Xms128M -Xmx256M" # 힙 메모리 최소화
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.0
+    environment:
+      KAFKA_HEAP_OPTS: "-Xms512M -Xmx1G" # 1GB로 제한
+      # ... 나머지 기존 설정 동일
+    deploy:
+      resources:
+        limits:
+          memory: 1.5G # 컨테이너 물리 한계 설정
+
+  spark-master:
+    image: apache/spark-py:v3.3.0
+    environment:
+      - SPARK_DAEMON_MEMORY=512m
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  spark-worker:
+    image: apache/spark-py:v3.3.0
+    environment:
+      - SPARK_WORKER_MEMORY=2g   # 32g에서 2g로 대폭 수정
+      - SPARK_WORKER_CORES=1     # 코어도 1개만 할당해서 CPU 부하 감소
+    deploy:
+      resources:
+        limits:
+          memory: 2.5G
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    # ClickHouse는 메모리가 부족하면 꺼지므로 제한을 걸되 여유를 줌
+    deploy:
+      resources:
+        limits:
+          memory: 2G
