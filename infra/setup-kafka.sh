@@ -127,6 +127,8 @@ echo "=========================================="
 create_topic "binance-depth" 604800000
 create_topic "binance-kline" 604800000
 create_topic "binance-trade" 604800000
+# TODO
+## 스트림 데이터 
 
 # 리더 선출 대기
 echo ""

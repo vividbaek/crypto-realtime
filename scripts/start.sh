@@ -133,6 +133,7 @@ sleep 5
 
 # Ivy 캐시 디렉토리 준비 (볼륨 마운트로 해결됨)
 # 호스트 디렉토리 생성
+# spark-ivy란 카프카 연결 라이브러리 모음집
 mkdir -p data/spark-ivy 2>/dev/null || true
 # 컨테이너 내부에서 서브디렉토리 생성 (볼륨이 마운트된 후)
 docker exec spark-master bash -c "mkdir -p /opt/spark/.ivy2/cache /opt/spark/.ivy2/jars && chmod -R 777 /opt/spark/.ivy2" 2>/dev/null || true
